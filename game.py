@@ -147,21 +147,25 @@ class Game:
 
 	def getcustommap(self, title):
 		try:
-			r = requests.get('http://generals.io/api/map', params={'name': title.encode('utf-8')}).json()
+			r = requests.get('https://generals.io/api/map', params={'name': title.encode('utf-8')}).json()
 			n = r['height']
 			m = r['width']
 			t = r['map'].split(',')
 			self.owner = [[0 for j in range(m)] for i in range(n)]
 			self.army_cnt = [[0 for j in range(m)] for i in range(n)]
 			self.grid_type = [[0 for j in range(m)] for i in range(n)]
+			self.vis_type = [[False for j in range(m)] for i in range(n)]
 			for i in range(n):
 				for j in range(m):
 					x = t[i * m + j].strip(' ')
+					if len(x) and x[0] == 'L':
+						self.vis_type[i][j] = True
+						x = x[2:]
 					if x == 'm':
 						self.grid_type[i][j] = 1
 					elif x == 's':
 						self.grid_type[i][j] = 2
-					elif x == 'g':
+					elif len(x) and x[0] == 'g':
 						self.grid_type[i][j] = -2
 					elif x == 's':
 						self.grid_type[i][j] = 2
@@ -202,6 +206,7 @@ class Game:
 		get_st(grid_type, n, m, self.st)
 		self.owner = [[0 for j in range(m)] for i in range(n)]
 		self.army_cnt = [[0 for j in range(m)] for i in range(n)]
+		self.vis_type = [[False for j in range(m)] for i in range(n)]
 		for i in range(n):
 			for j in range(m):
 				if self.grid_type[i][j] == -1:
@@ -300,7 +305,7 @@ class Game:
 				rc = [[0 for j in range(self.m)] for i in range(self.n)]
 				for i in range(self.n):
 					for j in range(self.m):
-						if p == -1 or self.team[p] == 0 or self.spec[p]:
+						if self.vis_type[i][j] or p == -1 or self.team[p] == 0 or self.spec[p]:
 							rt[i][j] = 200
 						else:
 							rt[i][j] = 202
